@@ -13,7 +13,7 @@ function normalizeLabel(label) {
 }
 function extractVLPNumber(filename) {
   const match = filename.match(/VLP[\s\-]*(\d+)/i);
-  return match ? VLP ${match[1]} : "";
+  return match ? `VLP ${match[1]}` : "";
 }
 
 const columnAliases = {
