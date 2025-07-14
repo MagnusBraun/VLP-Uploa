@@ -13,7 +13,7 @@ function normalizeLabel(label) {
 }
 function extractVLPNumber(filename) {
   const match = filename.match(/VLP[\s\-]*(\d+)/i);
-  return match ? `VLP ${match[1]}` : "";
+  return match ? VLP ${match[1]} : "";
 }
 
 const columnAliases = {
@@ -112,7 +112,7 @@ async function resolveMissingMappings(headerMap, mappedKeys) {
 
     missing.forEach(([excelCol]) => {
       const label = document.createElement("label");
-      label.textContent = `Excel: ${excelCol}`;
+      label.textContent = Excel: ${excelCol};
       label.style.display = "block";
       label.style.marginTop = "10px";
 
@@ -174,7 +174,7 @@ async function uploadPDF() {
     const formData = new FormData();
     formData.append("file", file);
 
-    preview.innerHTML = `<p><em>Verarbeite Datei ${i + 1} von ${files.length}: ${file.name}</em></p>`;
+    preview.innerHTML = <p><em>Verarbeite Datei ${i + 1} von ${files.length}: ${file.name}</em></p>;
 
     try {
       const res = await fetch(apiUrl, {
@@ -191,14 +191,14 @@ async function uploadPDF() {
       const vlpNumber = extractVLPNumber(file.name);
       const keys = Object.keys(data);
       const rowCount = Object.values(data)[0]?.length || 0;
-
+      
       // Leere Daten verhindern, auch wenn VLP existiert
       const filteredData = {};
       for (const key of keys) {
         filteredData[key] = [];
       }
       filteredData["VLP"] = [];
-
+      
       for (let i = 0; i < rowCount; i++) {
         let hasRealContent = false;
 
@@ -210,7 +210,7 @@ async function uploadPDF() {
             break;
           }
         }
-
+      
         if (hasRealContent) {
           for (const key of keys) {
             filteredData[key].push(data[key]?.[i] ?? "");
@@ -218,17 +218,17 @@ async function uploadPDF() {
           filteredData["VLP"].push(vlpNumber);
         }
       }
-
+      
       // Wenn nach dem Filtern KEINE Zeile übrig bleibt
       const filteredRowCount = filteredData["VLP"].length;
       if (filteredRowCount === 0) {
         throw new Error("Keine gültigen Datenzeilen in dieser PDF.");
       }
-
+      
       data = filteredData;
       allResults.push(data);
     } catch (err) {
-      errors.push(`${file.name}: ${err.message}`);
+      errors.push(${file.name}: ${err.message});
     }
   }
 
@@ -253,7 +253,7 @@ async function uploadPDF() {
     errorDiv.style.color = "orangered";
     errorDiv.style.marginTop = "1em";
     errorDiv.innerHTML = "<strong>Folgende Dateien konnten nicht verarbeitet werden:</strong><br>" +
-                         errors.map(e => `• ${e}`).join("<br>");
+                         errors.map(e => • ${e}).join("<br>");
     preview.appendChild(errorDiv);
   }
 }
@@ -268,7 +268,7 @@ function previewInTable(mapped) {
   if (!headers.includes("VLP") && mapped["VLP"]) {
     headers.push("VLP");
   }
-
+  
   const table = document.createElement("table");
   table.border = "1";
 
@@ -303,7 +303,7 @@ function previewInTable(mapped) {
   preview.appendChild(resetBtn);
 }
 
- async function insertToExcel(mapped) { 
+async function insertToExcel(mapped) {
   await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getActiveWorksheet();
     const headerRange = sheet.getRange("A1:Z1");
@@ -389,20 +389,17 @@ function previewInTable(mapped) {
     const cleanupIndexes = cleanupCols.map(col =>
       excelHeaders.findIndex(h => normalizeLabel(h) === normalizeLabel(col))
     ).filter(i => i !== -1);
-        
-    // Lade alle Werte der neuen Zeilen (zuerst alle loads vorbereiten)
-    const ranges = [];
-    
-    for (const rowNum of insertedRowNumbers) {
-      const range = sheet.getRangeByIndexes(rowNum - 1, 0, 1, colCount);
-      range.load("values");
-      ranges.push({ rowNum, range });
-    }
-    await context.sync(); // ⬅️ WICHTIG! Jetzt erst sind values verfügbar
     
     const invalidRows = [];
     
-    for (const { rowNum, range } of ranges) {
+    const rowRanges = insertedRowNumbers.map(rowNum => {
+      const range = sheet.getRangeByIndexes(rowNum - 1, 0, 1, colCount);
+      range.load("values");
+      return { rowNum, range };
+    });
+    await context.sync();
+    
+    for (const { rowNum, range } of rowRanges) {
       const values = range.values[0];
     
       const allRelevantEmpty = cleanupIndexes.every(i =>
@@ -414,13 +411,12 @@ function previewInTable(mapped) {
       }
     }
     
-    // Jetzt löschen – von unten nach oben
+    // Jetzt löschen – von unten nach oben!
     for (const row of invalidRows.sort((a, b) => b - a)) {
       sheet.getRangeByIndexes(row - 1, 0, 1, colCount).delete(Excel.DeleteShiftDirection.up);
     }
     
     await context.sync();
-
 
     // ✅ Jetzt Duplikate prüfen, vor Sortierung!
     await detectAndHandleDuplicates(context, sheet, excelHeaders, insertedRowNumbers, insertedKeys);
@@ -430,16 +426,12 @@ function previewInTable(mapped) {
     updatedRange.load("rowCount");
     await context.sync();
     const kabelIndex = excelHeaders.findIndex(h => normalizeLabel(h) === normalizeLabel("Kabelnummer"));
-    const vonKmIndex = excelHeaders.findIndex(h => normalizeLabel(h) === normalizeLabel("von km"));
-    
-    if (kabelIndex !== -1 && vonKmIndex !== -1) {
+    if (kabelIndex !== -1) {
       const sortRange = sheet.getRangeByIndexes(1, 0, updatedRange.rowCount - 1, colCount);
-      sortRange.sort.apply([
-        { key: kabelIndex, ascending: true },
-        { key: vonKmIndex, ascending: true }
-      ]);
+      sortRange.sort.apply([{ key: kabelIndex, ascending: true }]);
       await context.sync();
     }
+    await applyDuplicateBoxHighlightingAfterSort(context, sheet);
 
     // 🧹 Leere Zeilen entfernen
     const fullRange = sheet.getUsedRange();
@@ -458,6 +450,7 @@ function previewInTable(mapped) {
   });
 }
 
+
 async function removeEmptyRows(context, sheet) {
   const usedRange = sheet.getUsedRange();
   usedRange.load(["values", "rowCount", "columnCount"]);
@@ -475,7 +468,7 @@ async function removeEmptyRows(context, sheet) {
   }
 
   for (const r of rowsToDelete.reverse()) {
-    sheet.getRange(`A${r}:Z${r}`).delete(Excel.DeleteShiftDirection.up);
+    sheet.getRange(A${r}:Z${r}).delete(Excel.DeleteShiftDirection.up);
   }
 
   await context.sync();
@@ -604,7 +597,7 @@ async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNum
 
   return new Promise(resolve => {
     showDuplicateChoiceDialog(
-      `${dupeNewRows.length} Duplikate erkannt. Wie möchtest du fortfahren?`,
+      ${dupeNewRows.length} Duplikate erkannt. Wie möchtest du fortfahren?,
       async () => {
         // 1. NICHT hinzufügen
         for (const row of dupeNewRows.sort((a, b) => b - a)) {
@@ -658,7 +651,61 @@ async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNum
   });
 }
 
+
+async function applyDuplicateBoxHighlightingAfterSort(context, sheet) {
+  const setting = context.workbook.settings.getItemOrNullObject("DuplikatKeys");
+  setting.load("value"); // <-- wichtig!
+  await context.sync();
+
+  // Jetzt sicher prüfen und verwenden
+  if (setting.isNullObject || !setting.value) return;
+
+  const raw = setting.value;
+  setting.delete(); // optional
+  await context.sync();
+
+  const { keys, startCol, colCount, keyCols } = JSON.parse(raw);
+
+  if (!keys || !Array.isArray(keys) || keys.length === 0) return;
+  if (startCol < 0 || colCount <= 0) return;
+
+  const usedRange = sheet.getUsedRange();
+  usedRange.load(["values", "rowCount", "columnCount"]);
+  await context.sync();
+
+  const headerRange = sheet.getRange("A1:Z1");
+  headerRange.load("values");
+  await context.sync();
+
+  const headerRow = headerRange.values[0];
+  const keyIndexes = keyCols.map(k =>
+    headerRow.findIndex(h => normalizeLabel(h) === k)
+  ).filter(i => i !== -1);
+
+  if (keyIndexes.length < 2) return;
+
+  const values = usedRange.values.slice(1); // ohne Header
+  const matchedKeys = new Map();
+
+  for (let i = 0; i < values.length; i++) {
+    const row = values[i];
+    const key = keyIndexes.map(j => (row[j] || "").toString().trim().toLowerCase()).join("|");
+    if (keys.includes(key)) {
+      if (!matchedKeys.has(key)) matchedKeys.set(key, []);
+      matchedKeys.get(key).push(i + 1); // Excel-Zeile (1-basiert, +1 für Header)
+    }
+  }
+
+for (const rows of matchedKeys.values()) {
+  for (const row of rows) {
+    const cellRange = sheet.getRangeByIndexes(row - 1, startCol, 1, colCount);
+    cellRange.format.font.color = "#B8860B"; // Dunkelgelb
+  }
+}
+  await context.sync();
+}
+
 function showError(msg) {
   const preview = document.getElementById("preview");
-  preview.innerHTML = `<div style="color:red;font-weight:bold">${msg}</div>`;
+  preview.innerHTML = <div style="color:red;font-weight:bold">${msg}</div>;
 }
