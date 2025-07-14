@@ -112,7 +112,7 @@ async function resolveMissingMappings(headerMap, mappedKeys) {
 
     missing.forEach(([excelCol]) => {
       const label = document.createElement("label");
-      label.textContent = Excel: ${excelCol};
+      label.textContent = `Excel: ${excelCol}`;
       label.style.display = "block";
       label.style.marginTop = "10px";
 
