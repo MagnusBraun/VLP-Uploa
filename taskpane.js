@@ -389,18 +389,22 @@ function previewInTable(mapped) {
     const cleanupIndexes = cleanupCols.map(col =>
       excelHeaders.findIndex(h => normalizeLabel(h) === normalizeLabel(col))
     ).filter(i => i !== -1);
+        
+    // Lade alle Werte der neuen Zeilen (zuerst alle loads vorbereiten)
+    const ranges = [];
+    
+    for (const rowNum of insertedRowNumbers) {
+      const range = sheet.getRangeByIndexes(rowNum - 1, 0, 1, colCount);
+      range.load("values");
+      ranges.push({ rowNum, range });
+    }
+    await context.sync(); // ⬅️ WICHTIG! Jetzt erst sind values verfügbar
     
     const invalidRows = [];
     
-    const rowRanges = insertedRowNumbers.map(rowNum => {
-      const range = sheet.getRangeByIndexes(rowNum - 1, 0, 1, colCount);
-      range.load("values");
-      return { rowNum, range };
-    });
-    await context.sync();
-    
-    for (const { rowNum, range } of rowRanges) {
+    for (const { rowNum, range } of ranges) {
       const values = range.values[0];
+    
       const allRelevantEmpty = cleanupIndexes.every(i =>
         !values[i] || values[i].toString().trim() === ""
       );
@@ -410,12 +414,13 @@ function previewInTable(mapped) {
       }
     }
     
-    // Jetzt löschen – von unten nach oben!
+    // Jetzt löschen – von unten nach oben
     for (const row of invalidRows.sort((a, b) => b - a)) {
       sheet.getRangeByIndexes(row - 1, 0, 1, colCount).delete(Excel.DeleteShiftDirection.up);
     }
     
     await context.sync();
+
 
     // ✅ Jetzt Duplikate prüfen, vor Sortierung!
     await detectAndHandleDuplicates(context, sheet, excelHeaders, insertedRowNumbers, insertedKeys);
@@ -435,7 +440,7 @@ function previewInTable(mapped) {
       ]);
       await context.sync();
     }
-    await applyKabelnummerGroupingBorders(context, sheet, excelHeaders);
+
     // 🧹 Leere Zeilen entfernen
     const fullRange = sheet.getUsedRange();
     fullRange.load(["values", "rowCount"]);
@@ -651,60 +656,6 @@ async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNum
       }
     );
   });
-}
-
-
-async function applyDuplicateBoxHighlightingAfterSort(context, sheet) {
-  const setting = context.workbook.settings.getItemOrNullObject("DuplikatKeys");
-  setting.load("value"); // <-- wichtig!
-  await context.sync();
-
-  // Jetzt sicher prüfen und verwenden
-  if (setting.isNullObject || !setting.value) return;
-
-  const raw = setting.value;
-  setting.delete(); // optional
-  await context.sync();
-
-  const { keys, startCol, colCount, keyCols } = JSON.parse(raw);
-
-  if (!keys || !Array.isArray(keys) || keys.length === 0) return;
-  if (startCol < 0 || colCount <= 0) return;
-
-  const usedRange = sheet.getUsedRange();
-  usedRange.load(["values", "rowCount", "columnCount"]);
-  await context.sync();
-
-  const headerRange = sheet.getRange("A1:Z1");
-  headerRange.load("values");
-  await context.sync();
-
-  const headerRow = headerRange.values[0];
-  const keyIndexes = keyCols.map(k =>
-    headerRow.findIndex(h => normalizeLabel(h) === k)
-  ).filter(i => i !== -1);
-
-  if (keyIndexes.length < 2) return;
-
-  const values = usedRange.values.slice(1); // ohne Header
-  const matchedKeys = new Map();
-
-  for (let i = 0; i < values.length; i++) {
-    const row = values[i];
-    const key = keyIndexes.map(j => (row[j] || "").toString().trim().toLowerCase()).join("|");
-    if (keys.includes(key)) {
-      if (!matchedKeys.has(key)) matchedKeys.set(key, []);
-      matchedKeys.get(key).push(i + 1); // Excel-Zeile (1-basiert, +1 für Header)
-    }
-  }
-
- for (const rows of matchedKeys.values()) {
-  for (const row of rows) {
-    const cellRange = sheet.getRangeByIndexes(row, startCol, 1, colCount);
-    cellRange.format.font.color = "#B8860B"; // Dunkelgelb
-  }
-}
-  await context.sync();
 }
 
 function showError(msg) {
