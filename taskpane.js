@@ -227,7 +227,7 @@ Office.onReady(() => {
         data = filteredData;
         allResults.push(data);
       } catch (err) {
-        errors.push(${file.name}: ${err.message});
+        errors.push(`${file.name}: ${err.message}`);
       }
     }
   
