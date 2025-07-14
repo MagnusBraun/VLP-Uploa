@@ -174,7 +174,7 @@ async function uploadPDF() {
     const formData = new FormData();
     formData.append("file", file);
 
-    preview.innerHTML = <p><em>Verarbeite Datei ${i + 1} von ${files.length}: ${file.name}</em></p>;
+    preview.innerHTML = `<p><em>Verarbeite Datei ${i + 1} von ${files.length}: ${file.name}</em></p>`;
 
     try {
       const res = await fetch(apiUrl, {
@@ -707,5 +707,5 @@ for (const rows of matchedKeys.values()) {
 
 function showError(msg) {
   const preview = document.getElementById("preview");
-  preview.innerHTML = <div style="color:red;font-weight:bold">${msg}</div>;
+  preview.innerHTML = `<div style="color:red;font-weight:bold">${msg}</div>`;
 }
