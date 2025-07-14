@@ -303,7 +303,7 @@ function previewInTable(mapped) {
   preview.appendChild(resetBtn);
 }
 
-async function insertToExcel(mapped) {
+ async function insertToExcel(mapped) { 
   await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getActiveWorksheet();
     const headerRange = sheet.getRange("A1:Z1");
@@ -389,32 +389,32 @@ async function insertToExcel(mapped) {
     const cleanupIndexes = cleanupCols.map(col =>
       excelHeaders.findIndex(h => normalizeLabel(h) === normalizeLabel(col))
     ).filter(i => i !== -1);
-
+    
     const invalidRows = [];
-
+    
     const rowRanges = insertedRowNumbers.map(rowNum => {
       const range = sheet.getRangeByIndexes(rowNum - 1, 0, 1, colCount);
       range.load("values");
       return { rowNum, range };
     });
     await context.sync();
-
+    
     for (const { rowNum, range } of rowRanges) {
       const values = range.values[0];
       const allRelevantEmpty = cleanupIndexes.every(i =>
         !values[i] || values[i].toString().trim() === ""
       );
-
+    
       if (allRelevantEmpty) {
         invalidRows.push(rowNum);
       }
     }
-
+    
     // Jetzt löschen – von unten nach oben!
     for (const row of invalidRows.sort((a, b) => b - a)) {
       sheet.getRangeByIndexes(row - 1, 0, 1, colCount).delete(Excel.DeleteShiftDirection.up);
     }
-
+    
     await context.sync();
 
     // ✅ Jetzt Duplikate prüfen, vor Sortierung!
@@ -426,7 +426,7 @@ async function insertToExcel(mapped) {
     await context.sync();
     const kabelIndex = excelHeaders.findIndex(h => normalizeLabel(h) === normalizeLabel("Kabelnummer"));
     const vonKmIndex = excelHeaders.findIndex(h => normalizeLabel(h) === normalizeLabel("von km"));
-
+    
     if (kabelIndex !== -1 && vonKmIndex !== -1) {
       const sortRange = sheet.getRangeByIndexes(1, 0, updatedRange.rowCount - 1, colCount);
       sortRange.sort.apply([
@@ -435,7 +435,7 @@ async function insertToExcel(mapped) {
       ]);
       await context.sync();
     }
-    await applyDuplicateBoxHighlightingAfterSort(context, sheet);
+    await applyKabelnummerGroupingBorders(context, sheet, excelHeaders);
     // 🧹 Leere Zeilen entfernen
     const fullRange = sheet.getUsedRange();
     fullRange.load(["values", "rowCount"]);
@@ -447,12 +447,11 @@ async function insertToExcel(mapped) {
     })).filter(r => r.isEmpty).map(r => r.idx + 1).sort((a, b) => b - a);
 
     for (const row of emptyRows) {
-      sheet.getRange(`A${row}:Z${row}`).delete(Excel.DeleteShiftDirection.up);
+      sheet.getRange(A${row}:Z${row}).delete(Excel.DeleteShiftDirection.up);
     }
     await context.sync();
   });
 }
-
 
 async function removeEmptyRows(context, sheet) {
   const usedRange = sheet.getUsedRange();
