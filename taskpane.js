@@ -191,14 +191,14 @@ async function uploadPDF() {
       const vlpNumber = extractVLPNumber(file.name);
       const keys = Object.keys(data);
       const rowCount = Object.values(data)[0]?.length || 0;
-      
+
       // Leere Daten verhindern, auch wenn VLP existiert
       const filteredData = {};
       for (const key of keys) {
         filteredData[key] = [];
       }
       filteredData["VLP"] = [];
-      
+
       for (let i = 0; i < rowCount; i++) {
         let hasRealContent = false;
 
@@ -210,7 +210,7 @@ async function uploadPDF() {
             break;
           }
         }
-      
+
         if (hasRealContent) {
           for (const key of keys) {
             filteredData[key].push(data[key]?.[i] ?? "");
@@ -218,13 +218,13 @@ async function uploadPDF() {
           filteredData["VLP"].push(vlpNumber);
         }
       }
-      
+
       // Wenn nach dem Filtern KEINE Zeile übrig bleibt
       const filteredRowCount = filteredData["VLP"].length;
       if (filteredRowCount === 0) {
         throw new Error("Keine gültigen Datenzeilen in dieser PDF.");
       }
-      
+
       data = filteredData;
       allResults.push(data);
     } catch (err) {
@@ -268,7 +268,7 @@ function previewInTable(mapped) {
   if (!headers.includes("VLP") && mapped["VLP"]) {
     headers.push("VLP");
   }
-  
+
   const table = document.createElement("table");
   table.border = "1";
 
@@ -389,32 +389,32 @@ async function insertToExcel(mapped) {
     const cleanupIndexes = cleanupCols.map(col =>
       excelHeaders.findIndex(h => normalizeLabel(h) === normalizeLabel(col))
     ).filter(i => i !== -1);
-    
+
     const invalidRows = [];
-    
+
     const rowRanges = insertedRowNumbers.map(rowNum => {
       const range = sheet.getRangeByIndexes(rowNum - 1, 0, 1, colCount);
       range.load("values");
       return { rowNum, range };
     });
     await context.sync();
-    
+
     for (const { rowNum, range } of rowRanges) {
       const values = range.values[0];
       const allRelevantEmpty = cleanupIndexes.every(i =>
         !values[i] || values[i].toString().trim() === ""
       );
-    
+
       if (allRelevantEmpty) {
         invalidRows.push(rowNum);
       }
     }
-    
+
     // Jetzt löschen – von unten nach oben!
     for (const row of invalidRows.sort((a, b) => b - a)) {
       sheet.getRangeByIndexes(row - 1, 0, 1, colCount).delete(Excel.DeleteShiftDirection.up);
     }
-    
+
     await context.sync();
 
     // ✅ Jetzt Duplikate prüfen, vor Sortierung!
@@ -426,7 +426,7 @@ async function insertToExcel(mapped) {
     await context.sync();
     const kabelIndex = excelHeaders.findIndex(h => normalizeLabel(h) === normalizeLabel("Kabelnummer"));
     const vonKmIndex = excelHeaders.findIndex(h => normalizeLabel(h) === normalizeLabel("von km"));
-    
+
     if (kabelIndex !== -1 && vonKmIndex !== -1) {
       const sortRange = sheet.getRangeByIndexes(1, 0, updatedRange.rowCount - 1, colCount);
       sortRange.sort.apply([
@@ -705,8 +705,6 @@ async function applyDuplicateBoxHighlightingAfterSort(context, sheet) {
     cellRange.format.font.color = "#B8860B"; // Dunkelgelb
   }
 }
-
-
   await context.sync();
 }
 
