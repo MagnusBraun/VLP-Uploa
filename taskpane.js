@@ -534,13 +534,27 @@ Office.onReady(() => {
   }
     
   async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNumbers = []) {
-    const keyCols = ["Kabelnummer", "von Ort", "von km", "bis Ort", "bis km"];
-    const keyIndexes = keyCols.map(k =>
-      headers.findIndex(h => normalizeLabel(h) === normalizeLabel(k))
-    ).filter(i => i !== -1);
-  
-    if (keyIndexes.length < 2) return;
-  
+     const keyCols = ["Kabelnummer", "von Ort", "von km", "bis Ort", "bis km"];
+      const keyIndexes = keyCols.map(k =>
+        headers.findIndex(h => normalizeLabel(h) === normalizeLabel(k))
+      ).filter(i => i !== -1);
+    
+      if (keyIndexes.length < 2) {
+        console.warn("Nicht genug Schlüsselspalten gefunden für Duplikaterkennung.");
+        return;
+      }
+    
+      const startCol = headers.findIndex(h =>
+        normalizeLabel(h) === normalizeLabel("Kabelnummer")
+      );
+      const endCol = headers.findIndex(h =>
+        normalizeLabel(h) === normalizeLabel("VLP")
+      );
+    
+      if (startCol === -1 || endCol === -1 || endCol < startCol) {
+        console.error("Ungültiger Spaltenbereich für Duplikaterkennung:", { startCol, endCol });
+        return;
+      }
     const usedRange = sheet.getUsedRange();
     usedRange.load(["values", "rowCount"]);
     await context.sync();
@@ -560,19 +574,6 @@ Office.onReady(() => {
     const dupeNewRows = [];
     const dupeOldRows = new Set();
     const duplicateKeys = new Set();
-  
-    const startCol = headers.findIndex(h =>
-        normalizeLabel(h) === normalizeLabel("Kabelnummer")
-      );
-    const endCol = headers.findIndex(h =>
-        normalizeLabel(h) === normalizeLabel("VLP")
-      );
-
-  if (startCol === -1 || endCol === -1 || endCol < startCol) {
-    console.error("Ungültiger Spaltenbereich für Duplikaterkennung:", { startCol, endCol });
-    return;
-  }
-    
     const colCount = endCol - startCol + 1;
     
       
