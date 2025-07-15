@@ -586,11 +586,16 @@ async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNum
       dupeNewRows.push(rowNum);
 
       for (const dup of dupOlds) {
-        const dupRange = sheet.getRangeByIndexes(dup - 1, startCol, 1, colCount);
-        dupRange.format.fill.color = "#FFF2CC"; // hellgelb
-        dupeOldRows.add(dup);
-        duplicateKeys.add(key);
-      }
+      const dupRange = sheet.getRangeByIndexes(dup - 1, startCol, 1, colCount);
+      dupRange.format.fill.load("color");
+      await context.sync(); // notwendig, um die aktuelle Farbe zu laden
+    
+      const originalColor = dupRange.format.fill.color;
+      dupeOldRows.add({ row: dup, originalColor });
+      duplicateKeys.add(key);
+    
+      dupRange.format.fill.color = "#FFF2CC"; // hellgelb
+    }
     }
   }
 
