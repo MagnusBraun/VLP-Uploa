@@ -624,31 +624,30 @@ async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNum
       },
       // Option 2: ALTE ZEILEN ERSETZEN
       async () => {
+        // 2. ALTE ZEILEN ERSETZEN
         const sortedOlds = [...dupeOldRows].sort((a, b) => b.row - a.row);
         for (const { row } of sortedOlds) {
           sheet.getRangeByIndexes(row - 1, 0, 1, headers.length).delete(Excel.DeleteShiftDirection.up);
         }
         await context.sync();
-
+      
+        // Keine Farbübertragung! Neue Zeilen sollen "clean" bleiben.
+        // Falls du explizit sicherstellen willst, dass keine Hintergrundfarbe übernommen wurde:
         const updatedRange = sheet.getUsedRange();
         updatedRange.load(["rowCount"]);
         await context.sync();
-
+      
         const newStartRow = updatedRange.rowCount - insertedRowNumbers.length + 1;
         for (let i = 0; i < insertedRowNumbers.length; i++) {
           const rowIdx = newStartRow + i - 1;
           const targetRange = sheet.getRangeByIndexes(rowIdx, startCol, 1, colCount);
-          const oldRow = sortedOlds[i];
-          if (oldRow?.originalColor) {
-            targetRange.format.fill.color = oldRow.originalColor;
-          } else {
-            targetRange.format.fill.clear();
-          }
+          targetRange.format.fill.clear(); // Nur sicherheitshalber
         }
-
+      
         await context.sync();
         resolve();
-      },
+      }
+
       // Option 3: BEHALTEN & markieren
       async () => {
         for (const item of dupeOldRows) {
