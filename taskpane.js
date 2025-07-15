@@ -611,29 +611,44 @@ async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNum
         for (const row of dupeNewRows.sort((a, b) => b - a)) {
           sheet.getRangeByIndexes(row - 1, startCol, 1, colCount).delete(Excel.DeleteShiftDirection.up);
         }
-        for (const row of dupeOldRows) {
-          sheet.getRangeByIndexes(row - 1, startCol, 1, colCount).format.fill.clear();
+       for (const item of dupeOldRows) {
+        const range = sheet.getRangeByIndexes(item.row - 1, startCol, 1, colCount);
+        if (item.originalColor) {
+          range.format.fill.color = item.originalColor;
+        } else {
+          range.format.fill.clear();
         }
+      }
+
         await context.sync();
         resolve();
       },
       async () => {
         // 2. ALTE ZEILEN ERSETZEN (nach dem Löschen: nochmal clear auf die neuen Reihenfolge!)
-        for (const row of [...dupeOldRows].sort((a, b) => b - a)) {
+        // Alte Zeilen löschen – von unten nach oben
+        const sortedOlds = [...dupeOldRows].sort((a, b) => b.row - a.row);
+        for (const { row } of sortedOlds) {
           sheet.getRangeByIndexes(row - 1, 0, 1, headers.length).delete(Excel.DeleteShiftDirection.up);
         }
         await context.sync();
-
+        
+        // Nach dem Löschen: neu eingefügte Zeilen suchen (am Ende)
         const updatedRange = sheet.getUsedRange();
         updatedRange.load(["rowCount"]);
         await context.sync();
-
-        const remainingStartRow = updatedRange.rowCount - insertedRowNumbers.length + 1;
-
-       for (let i = 0; i < insertedRowNumbers.length; i++) {
-        const rowIndex = remainingStartRow + i - 1;
-        const rowRange = sheet.getRangeByIndexes(rowIndex, startCol, 1, colCount);
         
+        const newStartRow = updatedRange.rowCount - insertedRowNumbers.length + 1;
+        for (let i = 0; i < insertedRowNumbers.length; i++) {
+          const rowIdx = newStartRow + i - 1;
+          const targetRange = sheet.getRangeByIndexes(rowIdx, startCol, 1, colCount);
+          const oldRow = sortedOlds[i];
+          if (oldRow?.originalColor) {
+            targetRange.format.fill.color = oldRow.originalColor;
+          } else {
+            targetRange.format.fill.clear();
+          }
+        }
+
         // Falls Originalfarbe bekannt (ersetzen 1:1)
         const original = [...dupeOldRows][i];
         if (original?.originalColor) {
