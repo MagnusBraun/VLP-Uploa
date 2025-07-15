@@ -562,8 +562,12 @@ Office.onReady(() => {
     const dupeOldRows = new Set();
     const duplicateKeys = new Set();
   
-    const startCol = headers.findIndex(h => normalizeLabel(h) === "kabelnummer");
-    const endCol = headers.findIndex(h => normalizeLabel(h) === "vlp");
+    const startCol = headers.findIndex(h =>
+      normalizeLabel(h) === normalizeLabel("Kabelnummer")
+    );
+    const endCol = headers.findIndex(h =>
+      normalizeLabel(h) === normalizeLabel("VLP")
+    );
     
     if (startCol === -1 || endCol === -1 || endCol < startCol) {
       console.error("Ungültiger Spaltenbereich für Duplikaterkennung:", { startCol, endCol });
