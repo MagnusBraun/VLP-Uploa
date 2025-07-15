@@ -467,7 +467,7 @@ Office.onReady(() => {
     }
   
     for (const r of rowsToDelete.reverse()) {
-      sheet.getRange(A${r}:Z${r}).delete(Excel.DeleteShiftDirection.up);
+      sheet.getRange(`A${r}:Z${r}`).delete(Excel.DeleteShiftDirection.up);
     }
   
     await context.sync();
