@@ -251,7 +251,7 @@ Office.onReady(() => {
         const errorDiv = document.createElement("div");
         errorDiv.style.color = "orangered";
         errorDiv.style.marginTop = "1em";
-        errorDiv.innerHTML = "<strong>Folgende Dateien konnten nicht verarbeitet werden:</strong><br>" + errors.map(e => • ${e}).join("<br>");
+        errors.map(e => `• ${e}`).join("<br>");
         errors.push(`${file.name}: ${err.message}`);
         preview.appendChild(errorDiv);
     }
