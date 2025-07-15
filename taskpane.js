@@ -248,12 +248,12 @@ Office.onReady(() => {
     previewInTable(combined);
   
     if (errors.length > 0) {
-      const errorDiv = document.createElement("div");
-      errorDiv.style.color = "orangered";
-      errorDiv.style.marginTop = "1em";
-      errorDiv.innerHTML = "<strong>Folgende Dateien konnten nicht verarbeitet werden:</strong><br>" + errors.map(e => • ${e}).join("<br>");
+        const errorDiv = document.createElement("div");
+        errorDiv.style.color = "orangered";
+        errorDiv.style.marginTop = "1em";
+        errorDiv.innerHTML = "<strong>Folgende Dateien konnten nicht verarbeitet werden:</strong><br>" + errors.map(e => • ${e}).join("<br>");
         errors.push(`${file.name}: ${err.message}`);
-      preview.appendChild(errorDiv);
+        preview.appendChild(errorDiv);
     }
   }
   
