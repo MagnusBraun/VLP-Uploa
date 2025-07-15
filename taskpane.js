@@ -564,8 +564,15 @@ Office.onReady(() => {
   
     const startCol = headers.findIndex(h => normalizeLabel(h) === "kabelnummer");
     const endCol = headers.findIndex(h => normalizeLabel(h) === "vlp");
-    const colCount = endCol >= startCol ? endCol - startCol + 1 : 1;
-  
+    
+    if (startCol === -1 || endCol === -1 || endCol < startCol) {
+      console.error("Ungültiger Spaltenbereich für Duplikaterkennung:", { startCol, endCol });
+      return;
+    }
+    
+    const colCount = endCol - startCol + 1;
+    
+      
     for (const rowNum of insertedRowNumbers) {
       const range = sheet.getRangeByIndexes(rowNum - 1, 0, 1, headers.length);
       range.load("values");
