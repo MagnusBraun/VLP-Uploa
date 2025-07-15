@@ -532,8 +532,7 @@ Office.onReady(() => {
     overlay.appendChild(dialog);
     document.body.appendChild(overlay);
   }
-  
-  
+    
   async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNumbers = []) {
     const keyCols = ["Kabelnummer", "von Ort", "von km", "bis Ort", "bis km"];
     const keyIndexes = keyCols.map(k =>
@@ -563,16 +562,16 @@ Office.onReady(() => {
     const duplicateKeys = new Set();
   
     const startCol = headers.findIndex(h =>
-      normalizeLabel(h) === normalizeLabel("Kabelnummer")
-    );
+        normalizeLabel(h) === normalizeLabel("Kabelnummer")
+      );
     const endCol = headers.findIndex(h =>
-      normalizeLabel(h) === normalizeLabel("VLP")
-    );
-    
-    if (startCol === -1 || endCol === -1 || endCol < startCol) {
-      console.error("Ungültiger Spaltenbereich für Duplikaterkennung:", { startCol, endCol });
-      return;
-    }
+        normalizeLabel(h) === normalizeLabel("VLP")
+      );
+
+  if (startCol === -1 || endCol === -1 || endCol < startCol) {
+    console.error("Ungültiger Spaltenbereich für Duplikaterkennung:", { startCol, endCol });
+    return;
+  }
     
     const colCount = endCol - startCol + 1;
     
