@@ -443,7 +443,7 @@ Office.onReady(() => {
       })).filter(r => r.isEmpty).map(r => r.idx + 1).sort((a, b) => b - a);
   
       for (const row of emptyRows) {
-        sheet.getRange(A${row}:Z${row}).delete(Excel.DeleteShiftDirection.up);
+        sheet.getRange(`A${row}:Z${row}`).delete(Excel.DeleteShiftDirection.up);
       }
       await context.sync();
     });
