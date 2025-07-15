@@ -595,7 +595,7 @@ Office.onReady(() => {
   
     return new Promise(resolve => {
       showDuplicateChoiceDialog(
-        ${dupeNewRows.length} Duplikate erkannt. Wie möchtest du fortfahren?,
+        `${dupeNewRows.length} Duplikate erkannt. Wie möchtest du fortfahren?`,
         async () => {
           // 1. NICHT hinzufügen
           for (const row of dupeNewRows.sort((a, b) => b - a)) {
