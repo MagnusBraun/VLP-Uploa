@@ -630,21 +630,37 @@ async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNum
 
         const remainingStartRow = updatedRange.rowCount - insertedRowNumbers.length + 1;
 
-        for (let i = 0; i < insertedRowNumbers.length; i++) {
-          const rowIndex = remainingStartRow + i - 1;
-          const clearRange = sheet.getRangeByIndexes(rowIndex, startCol, 1, colCount);
-          clearRange.format.fill.clear();
+       for (let i = 0; i < insertedRowNumbers.length; i++) {
+        const rowIndex = remainingStartRow + i - 1;
+        const rowRange = sheet.getRangeByIndexes(rowIndex, startCol, 1, colCount);
+        
+        // Falls Originalfarbe bekannt (ersetzen 1:1)
+        const original = [...dupeOldRows][i];
+        if (original?.originalColor) {
+          rowRange.format.fill.color = original.originalColor;
+        } else {
+          rowRange.format.fill.clear(); // fallback
         }
+      }
+
 
         await context.sync();
         resolve();
       },
       async () => {
         // 3. BEHALTEN & später umrahmen
-        for (const row of [...dupeOldRows, ...dupeNewRows]) {
-          sheet.getRangeByIndexes(row - 1, startCol, 1, colCount).format.fill.clear();
+       for (const item of dupeOldRows) {
+        const range = sheet.getRangeByIndexes(item.row - 1, startCol, 1, colCount);
+        if (item.originalColor) {
+          range.format.fill.color = item.originalColor;
+        } else {
+          range.format.fill.clear();
         }
-
+      }
+      for (const row of dupeNewRows) {
+        sheet.getRangeByIndexes(row - 1, startCol, 1, colCount).format.fill.clear();
+      }
+      
         // In Workbook-Einstellungen speichern (statt in NamedRange!)
         context.workbook.settings.add("DuplikatKeys", JSON.stringify({
           keys: [...duplicateKeys],
