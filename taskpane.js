@@ -656,8 +656,6 @@ async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNum
         } else {
           rowRange.format.fill.clear(); // fallback
         }
-      }
-
 
         await context.sync();
         resolve();
