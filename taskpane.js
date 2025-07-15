@@ -465,11 +465,10 @@ Office.onReady(() => {
       const isEmpty = rows[i].every(cell => !cell || cell.toString().trim() === "");
       if (isEmpty) rowsToDelete.push(i + 1); // Excel ist 1-basiert
     }
-  
-    for (const r of rowsToDelete.reverse()) {
-        sheet.getRange(`A${row}:Z${row}`).delete(Excel.DeleteShiftDirection.up);
+      for (const r of rowsToDelete.reverse()) {
+      sheet.getRange(`A${r}:Z${r}`).delete(Excel.DeleteShiftDirection.up);
     }
-  
+
     await context.sync();
   }
   
