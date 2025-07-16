@@ -675,14 +675,13 @@ async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNum
 
 async function applyDuplicateBoxHighlightingAfterSort(context, sheet) {
   const setting = context.workbook.settings.getItemOrNullObject("DuplikatKeys");
-  setting.load("value"); // <-- wichtig!
+  setting.load("value");
   await context.sync();
 
-  // Jetzt sicher prüfen und verwenden
   if (setting.isNullObject || !setting.value) return;
 
   const raw = setting.value;
-  setting.delete(); // optional
+  setting.delete();
   await context.sync();
 
   const { keys, startCol, colCount, keyCols } = JSON.parse(raw);
@@ -705,7 +704,7 @@ async function applyDuplicateBoxHighlightingAfterSort(context, sheet) {
 
   if (keyIndexes.length < 2) return;
 
-  const values = usedRange.values.slice(1); // ohne Header
+  const values = usedRange.values.slice(1);
   const matchedKeys = new Map();
 
   for (let i = 0; i < values.length; i++) {
@@ -713,18 +712,20 @@ async function applyDuplicateBoxHighlightingAfterSort(context, sheet) {
     const key = keyIndexes.map(j => (row[j] || "").toString().trim().toLowerCase()).join("|");
     if (keys.includes(key)) {
       if (!matchedKeys.has(key)) matchedKeys.set(key, []);
-      matchedKeys.get(key).push(i + 1); // Excel-Zeile (1-basiert, +1 für Header)
+      matchedKeys.get(key).push(i + 1);
     }
   }
 
- for (const rows of matchedKeys.values()) {
-  for (const row of rows) {
-    const cellRange = sheet.getRangeByIndexes(row, startCol, 1, colCount);
-    cellRange.format.font.color = "#B8860B"; // Dunkelgelb
+  for (const rows of matchedKeys.values()) {
+    for (const row of rows) {
+      const cellRange = sheet.getRangeByIndexes(row, startCol, 1, colCount);
+      cellRange.format.font.color = "#B8860B";
+    }
   }
 
   await context.sync();
-}
+} // 👈 Das ist jetzt korrekt!
+
 
 function showError(msg) {
   const preview = document.getElementById("preview");
