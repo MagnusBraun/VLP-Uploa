@@ -553,7 +553,7 @@ async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNum
 
   const allRows = usedRange.values.slice(1);
   const newRowSet = new Set(insertedRowNumbers);
-  const existingRows = allRows.filter((_, idx) => !newRowSet.has(idx + 2)); // +2 = Header + 1-based
+  const existingRows = allRows.filter((_, idx) => !newRowSet.has(idx + 2));
 
   const existingKeyMap = new Map();
   existingRows.forEach((row, idx) => {
@@ -582,32 +582,31 @@ async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNum
 
     if (dupOlds.length > 0) {
       const newRange = sheet.getRangeByIndexes(rowNum - 1, startCol, 1, colCount);
-      newRange.format.fill.color = "#FFD966"; // dunkelgelb
+      newRange.format.fill.color = "#FFD966";
       dupeNewRows.push(rowNum);
 
       for (const dup of dupOlds) {
         const dupRange = sheet.getRangeByIndexes(dup - 1, startCol, 1, colCount);
         dupRange.format.fill.load("color");
-        await context.sync(); // notwendig, um die aktuelle Farbe zu laden
+        await context.sync();
 
         const originalColor = dupRange.format.fill.color;
         dupeOldRows.add({ row: dup, originalColor });
         duplicateKeys.add(key);
 
-        dupRange.format.fill.color = "#FFF2CC"; // hellgelb
+        dupRange.format.fill.color = "#FFF2CC";
       }
     }
   }
 
   if (dupeNewRows.length === 0) return;
-
   await context.sync();
 
   return new Promise(resolve => {
     showDuplicateChoiceDialog(
       `${dupeNewRows.length} Duplikate erkannt. Wie möchtest du fortfahren?`,
-      // Option 1: NICHT hinzufügen
       async () => {
+        // Option 1: NICHT hinzufügen
         for (const row of dupeNewRows.sort((a, b) => b - a)) {
           sheet.getRangeByIndexes(row - 1, startCol, 1, colCount).delete(Excel.DeleteShiftDirection.up);
         }
@@ -622,34 +621,30 @@ async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNum
         await context.sync();
         resolve();
       },
-      // Option 2: ALTE ZEILEN ERSETZEN
       async () => {
-        // 2. ALTE ZEILEN ERSETZEN
+        // Option 2: ALTE ZEILEN ERSETZEN
         const sortedOlds = [...dupeOldRows].sort((a, b) => b.row - a.row);
         for (const { row } of sortedOlds) {
           sheet.getRangeByIndexes(row - 1, 0, 1, headers.length).delete(Excel.DeleteShiftDirection.up);
         }
         await context.sync();
-      
-        // Keine Farbübertragung! Neue Zeilen sollen "clean" bleiben.
-        // Falls du explizit sicherstellen willst, dass keine Hintergrundfarbe übernommen wurde:
+
         const updatedRange = sheet.getUsedRange();
         updatedRange.load(["rowCount"]);
         await context.sync();
-      
+
         const newStartRow = updatedRange.rowCount - insertedRowNumbers.length + 1;
         for (let i = 0; i < insertedRowNumbers.length; i++) {
           const rowIdx = newStartRow + i - 1;
-          const targetRange = sheet.getRangeByIndexes(rowIdx, startCol, 1, colCount);
-          targetRange.format.fill.clear(); // Nur sicherheitshalber
+          const range = sheet.getRangeByIndexes(rowIdx, startCol, 1, colCount);
+          range.format.fill.clear(); // Keine Farbübernahme
         }
-      
+
         await context.sync();
         resolve();
       },
-
-      // Option 3: BEHALTEN & markieren
       async () => {
+        // Option 3: BEHALTEN & markieren
         for (const item of dupeOldRows) {
           const range = sheet.getRangeByIndexes(item.row - 1, startCol, 1, colCount);
           if (item.originalColor) {
@@ -668,13 +663,13 @@ async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNum
           colCount,
           keyCols: keyCols.map(k => normalizeLabel(k))
         }));
+
         await context.sync();
         resolve();
       }
     );
   });
 }
-
 
 
 async function applyDuplicateBoxHighlightingAfterSort(context, sheet) {
