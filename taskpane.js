@@ -1,4 +1,3 @@
-
 Office.onReady(() => {
   const input = document.getElementById("fileInput");
   if (input) {
