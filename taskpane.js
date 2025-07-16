@@ -722,8 +722,6 @@ async function applyDuplicateBoxHighlightingAfterSort(context, sheet) {
     const cellRange = sheet.getRangeByIndexes(row, startCol, 1, colCount);
     cellRange.format.font.color = "#B8860B"; // Dunkelgelb
   }
-}
-
 
   await context.sync();
 }
