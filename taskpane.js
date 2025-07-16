@@ -1,5 +1,6 @@
+console.log("🔥 taskpane.js geladen – aktuelle Version");
+
 Office.onReady(() => {
-  console.log("🔥 taskpane.js geladen – aktuelle Version");
   const input = document.getElementById("fileInput");
   if (input) {
     input.onchange = uploadPDF;
