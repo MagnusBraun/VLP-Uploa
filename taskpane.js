@@ -643,6 +643,7 @@ async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNum
         await context.sync();
         resolve();
       },
+      
       async () => {
         // Option 3: BEHALTEN & markieren
         for (const item of dupeOldRows) {
