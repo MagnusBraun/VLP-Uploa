@@ -14,7 +14,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://magnusbraun.github.io/VLP-Uploa"],  # exakt deine GitHub Pages Domain
+    allow_origins=["https://magnusbraun.github.io"],  # exakt deine GitHub Pages Domain
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
