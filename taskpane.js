@@ -539,6 +539,35 @@ function showDuplicateChoiceDialog(message, onSkipNew, onReplaceOld, onKeepAllMa
   document.body.appendChild(overlay);
 }
 
+async function clearWhiteFills(sheet) {
+  const usedRange = sheet.getUsedRange();
+  usedRange.load(["rowCount", "columnCount", "format/fill/color"]);
+  await sheet.context.sync();
+
+  const rows = usedRange.rowCount;
+  const cols = usedRange.columnCount;
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const cell = sheet.getCell(r, c);
+      cell.format.fill.load("color");
+    }
+  }
+
+  await sheet.context.sync();
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const cell = sheet.getCell(r, c);
+      if (cell.format.fill.color?.toUpperCase?.() === "#FFFFFF") {
+        cell.format.fill.clear(); // Setzt auf "Keine Füllung"
+      }
+    }
+  }
+
+  await sheet.context.sync();
+}
+
 
 async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNumbers = []) {
   const keyCols = ["Kabelnummer", "von Ort", "von km", "bis Ort", "bis km"];
@@ -670,6 +699,7 @@ async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNum
 
         await context.sync();
         resolve();
+        await clearWhiteFills(sheet);
       }
     );
   });
