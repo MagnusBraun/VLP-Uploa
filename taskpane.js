@@ -687,8 +687,11 @@ async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNum
         }
 
         for (const row of dupeNewRows) {
-          sheet.getRangeByIndexes(row - 1, startCol, 1, colCount).format.fill.clear();
+          const range = sheet.getRangeByIndexes(row - 1, startCol, 1, colCount);
+          range.format.fill.clear();
+          range.format.font.color = "#B8860B"; // Markiere gelb-braun
         }
+
 
         context.workbook.settings.add("DuplikatKeys", JSON.stringify({
           keys: [...duplicateKeys],
@@ -698,8 +701,9 @@ async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNum
         }));
 
         await context.sync();
-        resolve();
         await clearWhiteFills(sheet);
+        await sortByColumn(sheet, "Kabelnummer");
+        resolve();
       }
     );
   });
