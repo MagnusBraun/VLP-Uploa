@@ -560,7 +560,7 @@ async function clearWhiteFills(sheet) {
     for (let c = 0; c < cols; c++) {
       const cell = sheet.getCell(r, c);
       if (cell.format.fill.color?.toUpperCase?.() === "#FFFFFF") {
-        cell.format.fill.clear(); // Setzt auf "Keine Füllung"
+        cell.format.fill.none(); // Setzt auf "Keine Füllung"
       }
     }
   }
