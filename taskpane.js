@@ -613,12 +613,13 @@ async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNum
         }
         for (const item of dupeOldRows) {
           const range = sheet.getRangeByIndexes(item.row - 1, startCol, 1, colCount);
-          if (item.originalColor) {
-            range.format.fill.color = item.originalColor;
-          } else {
+          if (item.originalColor === null || item.originalColor === "") {
             range.format.fill.clear();
+          } else {
+            range.format.fill.color = item.originalColor;
           }
         }
+
         await context.sync();
         resolve();
       },
@@ -649,12 +650,13 @@ async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNum
         // Option 3: BEHALTEN & markieren
         for (const item of dupeOldRows) {
           const range = sheet.getRangeByIndexes(item.row - 1, startCol, 1, colCount);
-          if (item.originalColor) {
-            range.format.fill.color = item.originalColor;
-          } else {
+          if (item.originalColor === null || item.originalColor === "") {
             range.format.fill.clear();
+          } else {
+            range.format.fill.color = item.originalColor;
           }
         }
+
         for (const row of dupeNewRows) {
           sheet.getRangeByIndexes(row - 1, startCol, 1, colCount).format.fill.clear();
         }
