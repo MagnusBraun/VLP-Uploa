@@ -648,7 +648,8 @@ async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNum
             range.format.fill.color = item.originalColor;
           }
         }
-
+        await clearWhiteFills(sheet);
+        await sortByColumn(sheet, "Kabelnummer");
         await context.sync();
         resolve();
       },
@@ -670,7 +671,8 @@ async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNum
           const range = sheet.getRangeByIndexes(rowIdx, startCol, 1, colCount);
           range.format.fill.clear(); // Keine Farbübernahme
         }
-
+        await clearWhiteFills(sheet);
+        await sortByColumn(sheet, "Kabelnummer");
         await context.sync();
         resolve();
       },
@@ -699,10 +701,9 @@ async function detectAndHandleDuplicates(context, sheet, headers, insertedRowNum
           colCount,
           keyCols: keyCols.map(k => normalizeLabel(k))
         }));
-
-        await context.sync();
         await clearWhiteFills(sheet);
         await sortByColumn(sheet, "Kabelnummer");
+        await context.sync();
         resolve();
       }
     );
@@ -759,7 +760,8 @@ async function applyDuplicateBoxHighlightingAfterSort(context, sheet) {
       cellRange.format.font.color = "#B8860B";
     }
   }
-
+  await clearWhiteFills(sheet);
+  await sortByColumn(sheet, "Kabelnummer");
   await context.sync();
 } // 👈 Das ist jetzt korrekt!
 
