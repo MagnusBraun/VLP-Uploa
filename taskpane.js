@@ -427,12 +427,14 @@ async function insertToExcel(mapped) {
     await context.sync();
     const kabelIndex = excelHeaders.findIndex(h => normalizeLabel(h) === normalizeLabel("Kabelnummer"));
     const vonKmIndex = excelHeaders.findIndex(h => normalizeLabel(h) === normalizeLabel("von km"));
-    
-    if (kabelIndex !== -1 && vonKmIndex !== -1) {
+    const bisKmIndex = excelHeaders.findIndex(h => normalizeLabel(h) === normalizeLabel("bis km"));
+
+    if (kabelIndex !== -1 && vonKmIndex !== -1 && bisKmIndex !== -1) {
       const sortRange = sheet.getRangeByIndexes(1, 0, updatedRange.rowCount - 1, colCount);
       sortRange.sort.apply([
         { key: kabelIndex, ascending: true },
-        { key: vonKmIndex, ascending: true }
+        { key: vonKmIndex, ascending: true },
+        { key: bisKmIndex, ascending: true }
       ]);
       await context.sync();
     }
